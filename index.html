@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>talkey — 카톡 실시간 코칭 AI</title>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-47VC83BZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-47VC83BZ12');
+  </script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* 색상 팔레트 */
+      --warm-black:  #1C1714;
+      --white:       #FFFFFF;
+      --cream:       #FDFAF7;       /* 메인 히어로 배경 */
+      --beige-50:    #F5EDE5;       /* 서피스 */
+      --beige-100:   #EDE0D5;       /* 미디엄 베이지 */
+      --border:      #E0D3C6;       /* 따뜻한 보더 */
+      --text-1:      #1C1714;
+      --text-2:      #6E5E56;
+      --text-3:      #AA968C;
+      --rose:        #BF6F86;       /* 메인 액센트 (더스티 로즈) */
+      --rose-dark:   #A05870;       /* 호버 */
+      --rose-light:  #F7EAF0;       /* 뱃지, 칩 배경 */
+      --rose-mid:    #E8B8C8;       /* 미디엄 핑크 */
+      --kakao:       #FEE500;
+      --radius-s:    10px;
+      --radius-m:    16px;
+      --radius-l:    24px;
+      --font: 'Pretendard', -apple-system, 'Noto Sans KR', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--cream);
+      color: var(--text-1);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(253,250,247,0.88);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 19px; font-weight: 800; letter-spacing: -0.5px;
+      color: var(--warm-black);
+    }
+    .nav-logo em {
+      font-style: normal;
+      color: var(--rose);
+    }
+    .nav-cta {
+      background: var(--rose);
+      color: #fff;
+      border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: 13px; font-weight: 700;
+      letter-spacing: -0.2px;
+      cursor: pointer; font-family: var(--font);
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .nav-cta:hover { background: var(--rose-dark); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100svh;
+      /* 매우 은은한 핑크빛 블러시 → 크림 전환 */
+      background: linear-gradient(160deg, #FFF0F5 0%, #FDF8F4 35%, var(--cream) 70%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 80px 20px 60px;
+      position: relative; overflow: hidden;
+      text-align: center;
+    }
+
+    /* 미세 도트 그리드 */
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: radial-gradient(circle at 1px 1px, rgba(191,111,134,0.1) 1px, transparent 0);
+      background-size: 28px 28px;
+    }
+
+    .hero-inner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; width: 100%;
+    }
+
+    /* 뱃지 */
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--rose-light);
+      border: 1px solid var(--rose-mid);
+      border-radius: 100px; padding: 6px 14px;
+      font-size: 12.5px; font-weight: 500; color: var(--rose);
+      margin-bottom: 28px; letter-spacing: -0.1px;
+    }
+    .hero-badge .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3CC87A;
+      box-shadow: 0 0 0 3px rgba(60,200,122,0.2);
+      animation: livePulse 2.5s ease infinite;
+    }
+    .hero-badge b { font-weight: 700; color: var(--rose-dark); }
+
+    /* 헤드라인 */
+    .hero h1 {
+      font-size: clamp(27px, 6.5vw, 48px);
+      font-weight: 800; line-height: 1.22; letter-spacing: -1.5px;
+      color: var(--warm-black); margin-bottom: 16px;
+    }
+    .hero h1 .hl { color: var(--rose); }
+
+    .hero-desc {
+      font-size: clamp(14px, 2.8vw, 16px); line-height: 1.75;
+      color: var(--text-2); max-width: 360px;
+      margin: 0 auto 48px; letter-spacing: -0.2px; font-weight: 400;
+    }
+
+    /* 레이아웃: 칩 | 폰 | 칩 */
+    .hero-layout {
+      display: flex; align-items: center; justify-content: center;
+      gap: 20px; width: 100%; max-width: 820px;
+      margin: 0 auto;
+    }
+    .chip-col { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+    .chip-col-left { align-items: flex-end; }
+    .chip-col-right { align-items: flex-start; }
+
+    /* 피처 칩 - 깨끗한 흰색 카드 */
+    .feature-chip {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-m);
+      padding: 16px;
+      text-align: left;
+      max-width: 196px; width: 100%;
+      box-shadow: 0 2px 10px rgba(140,80,80,0.06);
+    }
+    .chip-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--rose-light);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+    .chip-icon svg {
+      width: 15px; height: 15px;
+      fill: none; stroke: var(--rose);
+      stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .chip-title {
+      font-size: 12.5px; font-weight: 700; margin-bottom: 5px;
+      letter-spacing: -0.2px; color: var(--text-1);
+    }
+    .chip-desc {
+      font-size: 11px; color: var(--text-3); line-height: 1.6;
+    }
+
+    /* 폰 목업 */
+    .phone-wrap {
+      flex-shrink: 0; width: 256px;
+      background: var(--warm-black);
+      border-radius: 30px;
+      padding: 3px;
+      box-shadow:
+        0 28px 64px rgba(28,23,20,0.22),
+        0 0 0 1px rgba(28,23,20,0.12);
+    }
+    .phone-inner {
+      background: #fff;
+      border-radius: 28px;
+      overflow: hidden;
+    }
+    .phone-statusbar {
+      background: #fff;
+      padding: 10px 16px 4px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .psb-time { font-size: 12px; font-weight: 700; color: #111; letter-spacing: -0.3px; }
+    .psb-icons svg { width: 15px; height: 10px; }
+
+    .chat-window { background: #fff; padding: 0 10px 12px; }
+    .chat-header {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 0 10px;
+      border-bottom: 1px solid #f2f2f4; margin-bottom: 10px;
+    }
+    .chat-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #F2AABF, #C47090);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .chat-name { font-size: 13.5px; font-weight: 700; letter-spacing: -0.3px; color: #111; }
+    .chat-online { font-size: 10.5px; color: #bbb; }
+
+    .bubble-wrap { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .bubble {
+      max-width: 80%; padding: 8px 12px;
+      border-radius: 16px; font-size: 12px; line-height: 1.55;
+      opacity: 0; animation: fadeUp 0.35s ease forwards;
+    }
+    .bubble.them {
+      background: #F0EEF0; color: #1a1a2e;
+      border-bottom-left-radius: 4px; align-self: flex-start;
+    }
+    .bubble.me {
+      background: var(--kakao); color: #111;
+      border-bottom-right-radius: 4px; align-self: flex-end;
+    }
+
+    .coaching-tip {
+      background: var(--rose-light);
+      border: 1px solid var(--rose-mid);
+      border-radius: 10px; padding: 9px 12px;
+      font-size: 10.5px; color: var(--rose-dark); line-height: 1.6;
+      opacity: 0; animation: fadeUp 0.35s 2.6s ease forwards;
+    }
+    .tip-label {
+      font-size: 10.5px; font-weight: 700; color: var(--rose);
+      margin-bottom: 4px; display: flex; align-items: center; gap: 4px;
+    }
+    .tip-label::before {
+      content: '';
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--rose); display: inline-block;
+    }
+
+    /* CTA 영역 */
+    .hero-cta-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      position: relative; z-index: 1; margin-top: 48px;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--rose);
+      color: #fff; text-decoration: none; border: none;
+      border-radius: var(--radius-s); padding: 15px 32px;
+      font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px;
+      cursor: pointer; font-family: var(--font);
+      box-shadow: 0 8px 22px rgba(191,111,134,0.38);
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--rose-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(160,88,112,0.42);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .hero-sub-note {
+      font-size: 12px; color: var(--text-3); letter-spacing: -0.1px;
+    }
+
+    .hero-timer {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 9px; padding: 9px 16px;
+      font-size: 12.5px; color: var(--text-2); letter-spacing: -0.1px;
+      box-shadow: 0 1px 4px rgba(28,23,20,0.06);
+    }
+    .hero-timer .t {
+      font-size: 15px; font-weight: 800; color: var(--warm-black);
+      font-variant-numeric: tabular-nums; letter-spacing: 0.5px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--warm-black);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 32px 20px;
+      text-align: center;
+      color: rgba(255,255,255,0.28);
+      font-size: 12px; line-height: 1.9; letter-spacing: -0.1px;
+    }
+    .footer-logo {
+      font-size: 14px; font-weight: 800;
+      color: rgba(255,255,255,0.4); margin-bottom: 6px;
+    }
+    .footer-links {
+      display: flex; justify-content: center; align-items: center;
+      gap: 4px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.28); text-decoration: none;
+      padding: 0 8px; transition: color 0.15s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.55); }
+    .footer-links .sep { color: rgba(255,255,255,0.14); }
+
+    /* ── 애니메이션 ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(60,200,122,0.2); }
+      50%       { box-shadow: 0 0 0 6px rgba(60,200,122,0.06); }
+    }
+
+    .bubble:nth-child(1) { animation-delay: 0.6s; }
+    .bubble:nth-child(2) { animation-delay: 1.3s; }
+    .bubble:nth-child(3) { animation-delay: 2.1s; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 680px) {
+      .hero-layout { flex-direction: column; gap: 16px; }
+      .chip-col {
+        flex-direction: row; flex-wrap: wrap;
+        justify-content: center; gap: 10px;
+        width: 100%; max-width: 320px;
+      }
+      .chip-col-left, .chip-col-right { align-items: stretch; }
+      .feature-chip { max-width: calc(50% - 5px); flex: 1; min-width: 136px; }
+      .phone-wrap { width: 236px; }
+    }
+    @media (max-width: 400px) {
+      .feature-chip { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">tal<em>key</em></span>
+  <a href="payment.html" class="nav-cta">무료 체험 시작</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+
+  <div class="hero-inner">
+
+    <div class="hero-badge">
+      <span class="live-dot"></span>
+      지금 <b id="live-users">2,847</b>명 체험 중
+    </div>
+
+    <h1>
+      "뭐라고 보내지?"<br/>
+      <span class="hl">고민하는 당신 곁에 든든한 가이드</span>
+    </h1>
+    <p class="hero-desc">
+      카톡 보내기 전에, 실시간으로 코칭받으세요.
+    </p>
+
+    <div class="hero-layout">
+
+      <!-- 왼쪽 칩 -->
+      <div class="chip-col chip-col-left">
+        <div class="feature-chip">
+          <div class="chip-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="chip-title">맞춤형 말투 구현</div>
+          <div class="chip-desc">사용자의 대화 말투를 분석하여, 같은 톤으로 답장 내용을 구성해요.</div>
+        </div>
+        <div class="feature-chip">
+          <div class="chip-icon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="chip-title">답변 분석</div>
+          <div class="chip-desc">상대방의 반응이 조금 방어적이에요. 지금 바로 질문을 던지는 건 역효과가 날 수 있어요. 자연스러운 화제 전환을 통해 대화의 무게를 가볍게 만들어보세요.</div>
+        </div>
+      </div>
+
+      <!-- 폰 목업 -->
+      <div class="phone-wrap">
+        <div class="phone-inner">
+          <div class="phone-statusbar">
+            <span class="psb-time">9:41</span>
+            <div class="psb-icons">
+              <svg viewBox="0 0 15 10" fill="none">
+                <rect x="0" y="4" width="2.5" height="6" rx="0.5" fill="#111" opacity="0.3"/>
+                <rect x="4" y="2.5" width="2.5" height="7.5" rx="0.5" fill="#111" opacity="0.55"/>
+                <rect x="8" y="0" width="2.5" height="10" rx="0.5" fill="#111"/>
+                <rect x="13" y="3" width="2" height="5.5" rx="0.4" fill="#111" opacity="0.25"/>
+              </svg>
+            </div>
+          </div>
+          <div class="chat-window">
+            <div class="chat-header">
+              <div class="chat-avatar">🌸</div>
+              <div>
+                <div class="chat-name">지민</div>
+                <div class="chat-online">온라인</div>
+              </div>
+            </div>
+            <div class="bubble-wrap">
+              <div class="bubble them">오늘 벚꽃 너무 예쁘더라 ㅋㅋ</div>
+              <div class="bubble them">혼자 보기 아까웠어 😮‍💨</div>
+              <div class="bubble me">나도 오늘 봤는데 같이 볼걸 😅</div>
+            </div>
+            <div class="coaching-tip">
+              <div class="tip-label">talkey 코칭</div>
+              아쉬움을 살짝 표현하면서 자연스럽게 다음 만남을 유도할 수 있어요.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오른쪽 칩 -->
+      <div class="chip-col chip-col-right">
+        <div class="feature-chip">
+          <div class="chip-icon">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="chip-title">애정도 분석</div>
+          <div class="chip-desc">연애도 게임처럼! 실시간 애정도 수치를 보며 공략하세요.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="hero-cta-wrap">
+      <a href="payment.html" class="btn-primary">
+        무료 체험 시작하기 &nbsp;→
+      </a>
+      <span class="hero-sub-note">신용카드 불필요 &nbsp;·&nbsp; 언제든 해지 가능</span>
+      <div class="hero-timer">
+        <span>내 무료 체험 종료까지</span>
+        <span class="t" id="hero-timer">24:00:00</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">talkey</div>
+  <div class="footer-links">
+    <a href="#">서비스 문의</a>
+    <span class="sep">·</span>
+    <a href="#">개인정보처리방침</a>
+    <span class="sep">·</span>
+    <a href="#">이용약관</a>
+  </div>
+  © 2025 Talkey. All rights reserved.
+</footer>
+
+<script>
+  function getEndTime() {
+    let end = localStorage.getItem('talkey_end');
+    if (!end) { end = Date.now() + 24 * 60 * 60 * 1000; localStorage.setItem('talkey_end', end); }
+    return parseInt(end);
+  }
+  function formatTime(ms) {
+    if (ms <= 0) return '00:00:00';
+    const s = Math.floor(ms / 1000);
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(n => String(n).padStart(2,'0')).join(':');
+  }
+  const endTime = getEndTime();
+  function tick() {
+    const el = document.getElementById('hero-timer');
+    if (el) el.textContent = formatTime(endTime - Date.now());
+  }
+  tick(); setInterval(tick, 1000);
+
+  let users = 2847;
+  setInterval(() => {
+    users += Math.floor(Math.random() * 5) - 1;
+    if (users < 2000) users = 2000;
+    const el = document.getElementById('live-users');
+    if (el) el.textContent = users.toLocaleString();
+  }, 3000);
+</script>
+
+<script>
+  // ── talkey 이벤트 트래킹 ──
+  (function () {
+    const SID_KEY = 'talkey_sid';
+    let sid = sessionStorage.getItem(SID_KEY);
+    if (!sid) {
+      sid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      sessionStorage.setItem(SID_KEY, sid);
+    }
+
+    function track(event, extra) {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event, page: 'index', session_id: sid, ...extra }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+
+    // 페이지 조회
+    track('page_view');
+
+    // CTA 버튼 클릭 (랜딩 → 결제)
+    document.querySelectorAll('a[href="payment.html"]').forEach(el => {
+      el.addEventListener('click', () => {
+        track('cta_click');
+        gtag('event', 'cta_click');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

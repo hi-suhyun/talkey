@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node server.js)",
+      "Bash(curl -s -X POST http://localhost:3000/api/track -H 'Content-Type: application/json' -d '{\"event\":\"page_view\",\"page\":\"index\",\"session_id\":\"test_abc\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/track -H 'Content-Type: application/json' -d '{\"event\":\"cta_click\",\"page\":\"index\",\"session_id\":\"test_abc\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/track -H 'Content-Type: application/json' -d '{\"event\":\"payment_btn_click\",\"page\":\"payment\",\"session_id\":\"test_abc\",\"data\":{\"method\":\"카카오페이\"}}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/track -H 'Content-Type: application/json' -d '{\"event\":\"form_submit\",\"page\":\"waiting\",\"session_id\":\"test_abc\"}')",
+      "Bash(python3 -m json.tool)"
+    ]
+  }
+}

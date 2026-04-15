@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>talkey — 측정 대시보드</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #F5F4F2;
+      --white:    #FFFFFF;
+      --border:   #E2DFDB;
+      --text-1:   #1C1A18;
+      --text-2:   #6B6460;
+      --text-3:   #A89E9A;
+      --rose:     #BF6F86;
+      --red:      #D94F4F;
+      --yellow:   #D4A017;
+      --green:    #2E9E6B;
+      --font: 'Pretendard', -apple-system, sans-serif;
+    }
+
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+    }
+
+    /* ── 상단 헤더 ── */
+    .top-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .top-bar-left { display: flex; align-items: center; gap: 12px; }
+    .brand { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: var(--rose); }
+    .page-title { font-size: 14px; font-weight: 600; color: var(--text-2); letter-spacing: -0.2px; }
+
+    .top-bar-right { display: flex; align-items: center; gap: 10px; }
+    .last-updated { font-size: 12px; color: var(--text-3); }
+    .refresh-btn {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 12px;
+      font-size: 12.5px; font-weight: 600; color: var(--text-2);
+      cursor: pointer; font-family: var(--font);
+      transition: background 0.15s;
+    }
+    .refresh-btn:hover { background: var(--bg); }
+
+    /* ── 레이아웃 ── */
+    .container { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--text-3);
+      letter-spacing: 0.6px; text-transform: uppercase;
+      margin-bottom: 12px; margin-top: 32px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* ── 퍼널 카드 ── */
+    .funnel-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-bottom: 0;
+    }
+    .funnel-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+    }
+    .funnel-card .fc-label { font-size: 12px; color: var(--text-2); margin-bottom: 6px; letter-spacing: -0.1px; }
+    .funnel-card .fc-value { font-size: 32px; font-weight: 800; letter-spacing: -1.5px; color: var(--text-1); line-height: 1; margin-bottom: 4px; }
+    .funnel-card .fc-sub   { font-size: 11.5px; color: var(--text-3); }
+
+    /* ── 가설 섹션 ── */
+    .hypothesis-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .hyp-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hyp-tag {
+      display: inline-block;
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px;
+      border-radius: 5px; padding: 3px 8px; margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .tag-wtp   { background: #FFF0E8; color: #B85A20; }
+    .tag-lead  { background: #E8F5EE; color: #1E7A4A; }
+    .tag-ext   { background: #EEF0FF; color: #4A5ADB; }
+    .hyp-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.4; }
+
+    .hyp-body { padding: 0; }
+    .metric-row {
+      display: flex; align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .metric-row:last-child { border-bottom: none; }
+
+    .metric-name { font-size: 13px; color: var(--text-2); flex: 1; letter-spacing: -0.1px; }
+    .metric-value { font-size: 22px; font-weight: 800; letter-spacing: -1px; min-width: 72px; text-align: right; }
+    .metric-value.null-val { font-size: 16px; color: var(--text-3); }
+
+    .threshold-bar {
+      flex: 2; min-width: 0;
+    }
+    .bar-track {
+      height: 6px; background: #F0EDEA; border-radius: 100px;
+      position: relative; overflow: visible;
+      margin-bottom: 6px;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 100px;
+      transition: width 0.6s ease;
+      position: relative;
+    }
+
+    .threshold-ticks {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: var(--text-3);
+    }
+
+    .verdict {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 700;
+      border-radius: 6px; padding: 4px 10px;
+      white-space: nowrap;
+    }
+    .verdict-red    { background: #FFF0F0; color: var(--red); }
+    .verdict-yellow { background: #FFFBEC; color: var(--yellow); }
+    .verdict-green  { background: #EDFBF3; color: var(--green); }
+    .verdict-gray   { background: #F5F4F2; color: var(--text-3); }
+    .verdict .dot   { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ── 일별 추이 ── */
+    .trend-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+    }
+    .trend-title { font-size: 13px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.2px; }
+    .trend-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .trend-table th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      color: var(--text-3); letter-spacing: 0.3px;
+      padding: 0 10px 8px; border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+    .trend-table td {
+      padding: 9px 10px; color: var(--text-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .trend-table tr:last-child td { border-bottom: none; }
+    .trend-table td:first-child { font-weight: 600; color: var(--text-1); }
+    .trend-table td.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+    /* ── 이벤트 로그 ── */
+    .log-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .log-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 700;
+    }
+    .log-scroll { max-height: 320px; overflow-y: auto; }
+    .log-row {
+      display: flex; align-items: baseline; gap: 12px;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .log-row:last-child { border-bottom: none; }
+    .log-time { color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .log-event { font-weight: 700; color: var(--rose); white-space: nowrap; }
+    .log-page  { color: var(--text-2); }
+    .log-sid   { color: var(--text-3); font-size: 11px; font-family: monospace; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 640px) {
+      .funnel-grid { grid-template-columns: repeat(2, 1fr); }
+      .metric-row { flex-wrap: wrap; }
+      .threshold-bar { flex: 1 1 100%; order: 3; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <span class="brand">talkey</span>
+    <span class="page-title">측정 대시보드</span>
+  </div>
+  <div class="top-bar-right">
+    <span class="last-updated" id="last-updated">—</span>
+    <button class="refresh-btn" onclick="load()">새로고침</button>
+  </div>
+</div>
+
+<div class="container" id="app">
+  <p style="color: var(--text-3); font-size:13px; padding: 40px 0;">데이터 불러오는 중...</p>
+</div>
+
+<script>
+const EVENT_LABELS = {
+  page_view:          '페이지 조회',
+  cta_click:          'CTA 클릭',
+  payment_btn_click:  '결제 버튼 클릭',
+  form_submit:        '연락처 제출',
+};
+
+function verdict(value, thresholds) {
+  // thresholds: [{min, max, label, cls}]
+  if (value === null || value === undefined) return { label: '데이터 없음', cls: 'verdict-gray' };
+  for (const t of thresholds) {
+    const aboveMin = t.min === undefined || value >= t.min;
+    const belowMax = t.max === undefined || value < t.max;
+    if (aboveMin && belowMax) return { label: t.label, cls: t.cls };
+  }
+  return { label: '—', cls: 'verdict-gray' };
+}
+
+function barColor(cls) {
+  return { 'verdict-red': '#D94F4F', 'verdict-yellow': '#D4A017', 'verdict-green': '#2E9E6B', 'verdict-gray': '#C0BAB5' }[cls] || '#C0BAB5';
+}
+
+function pctDisplay(v) {
+  if (v === null || v === undefined) return `<span class="metric-value null-val">—</span>`;
+  return `<span class="metric-value" style="color: var(--text-1)">${v}%</span>`;
+}
+
+function barHTML(value, max, cls) {
+  const pct = Math.min(value ?? 0, max) / max * 100;
+  return `
+    <div class="bar-track">
+      <div class="bar-fill" style="width:${pct}%; background:${barColor(cls)}"></div>
+    </div>`;
+}
+
+function verdictBadge(v) {
+  return `<span class="verdict ${v.cls}"><span class="dot"></span>${v.label}</span>`;
+}
+
+function metricRow(name, value, v, barMax, ticks) {
+  const vrd = verdict(value, v);
+  return `
+    <div class="metric-row">
+      <div class="metric-name">${name}</div>
+      ${pctDisplay(value)}
+      <div class="threshold-bar">
+        ${barHTML(value, barMax, vrd.cls)}
+        <div class="threshold-ticks">${ticks.map(t => `<span>${t}</span>`).join('')}</div>
+      </div>
+      ${verdictBadge(vrd)}
+    </div>`;
+}
+
+function render(stats, events) {
+  const { raw, rates, daily } = stats;
+
+  // 일별 피벗
+  const dayMap = {};
+  for (const r of daily) {
+    if (!dayMap[r.day]) dayMap[r.day] = {};
+    dayMap[r.day][r.event_name] = r.cnt;
+  }
+  const days = Object.keys(dayMap).sort();
+
+  // 이벤트 로그
+  const logRows = events.slice(0, 60).map(e => `
+    <div class="log-row">
+      <span class="log-time">${e.created_at}</span>
+      <span class="log-event">${EVENT_LABELS[e.event_name] || e.event_name}</span>
+      <span class="log-page">${e.page ?? '—'}</span>
+      <span class="log-sid">${(e.session_id || '').slice(0, 8)}</span>
+    </div>`).join('');
+
+  document.getElementById('app').innerHTML = `
+
+    <!-- 퍼널 요약 -->
+    <div class="section-label">퍼널 요약</div>
+    <div class="funnel-grid">
+      <div class="funnel-card">
+        <div class="fc-label">랜딩 방문 (세션)</div>
+        <div class="fc-value">${raw.uniqueSessions.toLocaleString()}</div>
+        <div class="fc-sub">전체 페이지뷰 ${raw.landing.toLocaleString()}회</div>
+      </div>
+      <div class="funnel-card">
+        <div class="fc-label">결제 버튼 클릭</div>
+        <div class="fc-value">${raw.payBtnClick.toLocaleString()}</div>
+        <div class="fc-sub">가격 페이지 ${raw.payPage.toLocaleString()}회 조회</div>
+      </div>
+      <div class="funnel-card">
+        <div class="fc-label">연락처 제출</div>
+        <div class="fc-value">${raw.formSubmit.toLocaleString()}</div>
+        <div class="fc-sub">대기 페이지 ${raw.waitPage.toLocaleString()}회 조회</div>
+      </div>
+    </div>
+
+    <!-- 가설 2: WTP -->
+    <div class="section-label" style="margin-top:28px">가설 검증</div>
+
+    <div class="hypothesis-card">
+      <div class="hyp-header">
+        <div class="hyp-tag tag-wtp">가설 2</div>
+        <div class="hyp-title">단순 니즈를 넘어 실시간 코칭 소프트웨어에 대한 WTP가 존재한다</div>
+      </div>
+      <div class="hyp-body">
+        ${metricRow(
+          '결제 버튼 클릭률 (랜딩 방문 대비)',
+          rates.payment_btn_rate,
+          [
+            { max: 2,  label: 'WTP 약함',          cls: 'verdict-red'    },
+            { min: 2,  max: 3, label: '탐색 가치 있음', cls: 'verdict-yellow' },
+            { min: 3,  max: 5, label: '의미 있는 WTP',  cls: 'verdict-green'  },
+            { min: 5,  label: '매우 강한 신호',       cls: 'verdict-green'  },
+          ],
+          10,
+          ['0%', '2%', '3%', '5%', '10%']
+        )}
+      </div>
+    </div>
+
+    <!-- 가설: 연락처 제출률 -->
+    <div class="hypothesis-card">
+      <div class="hyp-header">
+        <div class="hyp-tag tag-lead">연락처 제출률</div>
+        <div class="hyp-title">랜딩 방문자 중 충분한 비율이 연락처를 남긴다</div>
+      </div>
+      <div class="hyp-body">
+        ${metricRow(
+          '연락처 제출 / 랜딩 방문',
+          rates.form_vs_landing,
+          [
+            { max: 5,  label: '기준 미달',  cls: 'verdict-red'    },
+            { min: 5,  label: '기준 충족',  cls: 'verdict-green'  },
+          ],
+          20,
+          ['0%', '5%', '10%', '20%']
+        )}
+        ${metricRow(
+          '연락처 제출 / 가격 페이지 진입',
+          rates.form_vs_pay_page,
+          [
+            { max: 20, label: '기준 미달',  cls: 'verdict-red'    },
+            { min: 20, label: '기준 충족',  cls: 'verdict-green'  },
+          ],
+          60,
+          ['0%', '20%', '40%', '60%']
+        )}
+        ${metricRow(
+          '연락처 제출 / 결제 버튼 클릭',
+          rates.form_vs_pay_click,
+          [
+            { max: 40, label: '기준 미달',  cls: 'verdict-red'    },
+            { min: 40, label: '기준 충족',  cls: 'verdict-green'  },
+          ],
+          100,
+          ['0%', '40%', '70%', '100%']
+        )}
+      </div>
+    </div>
+
+    <!-- 가설 1: 광고 CTR (외부 지표) -->
+    <div class="hypothesis-card">
+      <div class="hyp-header">
+        <div class="hyp-tag tag-ext">가설 1 — 외부 지표</div>
+        <div class="hyp-title">10대 후반~20대 중반 남녀의 카톡 코칭 니즈가 충분히 크다</div>
+      </div>
+      <div class="hyp-body">
+        <div class="metric-row">
+          <div class="metric-name">광고 CTR (Meta/Google)</div>
+          <span class="metric-value null-val">외부 측정</span>
+          <div class="threshold-bar">
+            <div class="bar-track"><div class="bar-fill" style="width:0%;background:#C0BAB5"></div></div>
+            <div class="threshold-ticks"><span>1.5%</span><span>2.5%</span><span>3.5%+</span></div>
+          </div>
+          <span class="verdict verdict-gray"><span class="dot"></span>광고 플랫폼에서 확인</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">CTA 클릭률 (랜딩 방문 대비)</div>
+          ${pctDisplay(rates.cta_click_rate)}
+          <div class="threshold-bar">
+            ${barHTML(rates.cta_click_rate, 30, rates.cta_click_rate >= 10 ? 'verdict-green' : rates.cta_click_rate >= 5 ? 'verdict-yellow' : 'verdict-red')}
+            <div class="threshold-ticks"><span>0%</span><span>5%</span><span>10%</span><span>30%</span></div>
+          </div>
+          ${verdictBadge(verdict(rates.cta_click_rate, [
+            { max: 5,  label: '낮음', cls: 'verdict-red' },
+            { min: 5,  max: 10, label: '보통', cls: 'verdict-yellow' },
+            { min: 10, label: '양호', cls: 'verdict-green' },
+          ]))}
+        </div>
+      </div>
+    </div>
+
+    <!-- 일별 추이 -->
+    <div class="section-label">일별 이벤트 추이</div>
+    <div class="trend-card">
+      ${days.length === 0
+        ? `<p style="color:var(--text-3);font-size:13px;padding:16px 0;">아직 데이터가 없어요.</p>`
+        : `<table class="trend-table">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th style="text-align:right">랜딩 조회</th>
+                <th style="text-align:right">CTA 클릭</th>
+                <th style="text-align:right">결제 클릭</th>
+                <th style="text-align:right">연락처 제출</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${days.map(d => {
+                const row = dayMap[d];
+                return `<tr>
+                  <td>${d}</td>
+                  <td class="num">${row.page_view ?? 0}</td>
+                  <td class="num">${row.cta_click ?? 0}</td>
+                  <td class="num">${row.payment_btn_click ?? 0}</td>
+                  <td class="num">${row.form_submit ?? 0}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`
+      }
+    </div>
+
+    <!-- 이벤트 로그 -->
+    <div class="section-label">최근 이벤트 로그</div>
+    <div class="log-card">
+      <div class="log-header">최근 ${Math.min(events.length, 60)}건</div>
+      <div class="log-scroll">
+        ${logRows || `<div style="padding:16px 20px;color:var(--text-3);font-size:13px;">이벤트가 없어요.</div>`}
+      </div>
+    </div>
+  `;
+}
+
+async function load() {
+  try {
+    const [stats, events] = await Promise.all([
+      fetch('/api/stats').then(r => r.json()),
+      fetch('/api/events').then(r => r.json()),
+    ]);
+    render(stats, events);
+    document.getElementById('last-updated').textContent =
+      '업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+  } catch (e) {
+    document.getElementById('app').innerHTML =
+      `<p style="color:#D94F4F;font-size:13px;padding:40px 0;">서버에 연결할 수 없어요. <code>npm start</code>로 서버를 먼저 실행해주세요.</p>`;
+  }
+}
+
+load();
+setInterval(load, 30000); // 30초마다 자동 갱신
+</script>
+</body>
+</html>

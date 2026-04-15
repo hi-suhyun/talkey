@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>결제 — talkey</title>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-47VC83BZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-47VC83BZ12');
+  </script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --warm-black:  #1C1714;
+      --white:       #FFFFFF;
+      --cream:       #FDFAF7;
+      --beige-50:    #F5EDE5;
+      --beige-100:   #EDE0D5;
+      --border:      #E0D3C6;
+      --text-1:      #1C1714;
+      --text-2:      #6E5E56;
+      --text-3:      #AA968C;
+      --rose:        #BF6F86;
+      --rose-dark:   #A05870;
+      --rose-light:  #F7EAF0;
+      --rose-mid:    #E8B8C8;
+      --font: 'Pretendard', -apple-system, 'Noto Sans KR', sans-serif;
+    }
+
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: var(--font);
+      background: var(--beige-50);
+      color: var(--text-1);
+      min-height: 100svh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px; height: 54px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .back-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--beige-50); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; color: var(--text-1);
+      font-size: 16px; flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: var(--beige-100); }
+    .header-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+
+    /* ── CONTAINER ── */
+    .container {
+      max-width: 460px; margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+
+    .section { margin-bottom: 12px; }
+
+    /* 카드 기본 */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── 0원 카드 ── */
+    .price-card { padding: 24px; }
+
+    .price-card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 16px;
+    }
+    .price-label {
+      font-size: 13px; color: var(--text-2);
+      margin-bottom: 6px; letter-spacing: -0.1px;
+    }
+    .price-amount {
+      font-size: 42px; font-weight: 800; letter-spacing: -2px; line-height: 1;
+      color: var(--rose);
+    }
+    .price-amount .won { font-size: 22px; letter-spacing: -0.5px; }
+
+    .price-badge {
+      background: var(--rose-light);
+      color: var(--rose);
+      font-size: 11.5px; font-weight: 700;
+      border-radius: 6px; padding: 5px 10px;
+      letter-spacing: -0.1px; white-space: nowrap;
+      border: 1px solid var(--rose-mid);
+    }
+
+    .price-desc {
+      background: var(--beige-50);
+      border-radius: 12px; padding: 14px 16px;
+      font-size: 13px; color: var(--text-2); line-height: 1.75;
+      letter-spacing: -0.1px;
+    }
+    .price-desc b { color: var(--text-1); font-weight: 700; }
+
+    /* ── 플랜 정보 ── */
+    .plan-rows { padding: 4px 0; }
+    .plan-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .plan-row:last-child { border-bottom: none; }
+    .plan-key { font-size: 13.5px; color: var(--text-2); letter-spacing: -0.2px; }
+    .plan-val { font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text-1); }
+    .plan-val.accent { color: var(--rose); }
+
+    /* ── 타이머 ── */
+    .timer-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--warm-black); border-radius: 14px;
+      margin-bottom: 24px;
+    }
+    .timer-label { font-size: 13px; color: rgba(255,255,255,0.45); letter-spacing: -0.1px; }
+    .timer-val {
+      font-size: 20px; font-weight: 800; color: #fff;
+      letter-spacing: 0.5px; font-variant-numeric: tabular-nums;
+    }
+
+    /* ── 섹션 타이틀 ── */
+    .section-title {
+      font-size: 11.5px; font-weight: 700; color: var(--text-3);
+      letter-spacing: 0.4px; margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    /* ── 결제 버튼 그리드 ── */
+    .pay-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 8px;
+    }
+    .pay-btn {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; font-family: var(--font);
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+    }
+    .pay-btn:hover {
+      border-color: var(--rose-mid);
+      box-shadow: 0 2px 12px rgba(191,111,134,0.12);
+      transform: translateY(-1px);
+    }
+    .pay-btn:active { transform: scale(0.97); box-shadow: none; }
+
+    .pay-logo {
+      width: 52px; height: 30px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;
+    }
+    .logo-card   { background: var(--warm-black); color: #fff; font-size: 18px; }
+    .logo-kakao  { background: #FEE500; color: #3A1D00; }
+    .logo-naver  { background: #03C75A; color: #fff; }
+    .logo-toss   { background: #0064FF; color: #fff; }
+    .logo-payco  { background: #FA2828; color: #fff; font-size: 10px; }
+    .logo-samsung{ background: #1428A0; color: #fff; font-size: 9px; }
+    .logo-apple  { background: #000; color: #fff; font-size: 16px; }
+    .logo-bank   { background: var(--beige-100); color: var(--text-2); font-size: 15px; }
+
+    .pay-name { font-size: 12px; font-weight: 600; color: var(--text-2); letter-spacing: -0.1px; }
+
+    .pay-btn.dim {
+      background: var(--beige-50); border-color: var(--border);
+      opacity: 0.5; cursor: not-allowed; pointer-events: none;
+    }
+
+    /* ── 안내 박스 ── */
+    .notice-box {
+      background: #FFFDF5;
+      border: 1px solid #EDD898;
+      border-radius: 12px; padding: 14px 16px;
+      font-size: 12.5px; color: #7A6A20; line-height: 1.7;
+      letter-spacing: -0.1px; margin-top: 12px;
+    }
+    .notice-title { font-weight: 700; margin-bottom: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-btn">←</a>
+  <span class="header-title">결제 정보</span>
+</header>
+
+<div class="container">
+
+  <!-- 0원 강조 -->
+  <div class="section card price-card">
+    <div class="price-card-top">
+      <div>
+        <div class="price-label">지금 결제되는 금액</div>
+        <div class="price-amount"><span class="won">₩&nbsp;</span>0</div>
+      </div>
+      <div class="price-badge">30일 무료</div>
+    </div>
+    <div class="price-desc">
+      <b>한 달간 마음껏 써보세요.</b><br/>
+      체험 종료 <b>24시간 전에 알림</b>을 드리며,<br/>
+      언제든 클릭 한 번으로 해지할 수 있어요.
+    </div>
+  </div>
+
+  <!-- 플랜 요약 -->
+  <div class="section card">
+    <div class="plan-rows">
+      <div class="plan-row">
+        <span class="plan-key">플랜</span>
+        <span class="plan-val">talkey 스탠다드</span>
+      </div>
+      <div class="plan-row">
+        <span class="plan-key">체험 기간</span>
+        <span class="plan-val accent">30일 무료</span>
+      </div>
+      <!-- <div class="plan-row">
+        <span class="plan-key">체험 후 요금</span>
+        <span class="plan-val">월 9,900원</span>
+      </div> -->
+      <div class="plan-row">
+        <span class="plan-key">지금 청구 금액</span>
+        <span class="plan-val accent">₩ 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 타이머 -->
+  <div class="timer-card">
+    <span class="timer-label">무료 체험 종료까지</span>
+    <span class="timer-val" id="pay-timer">--:--:--</span>
+  </div>
+
+  <!-- 결제 방법 -->
+  <div class="section-title">결제 수단 선택</div>
+
+  <div class="pay-grid">
+    <button class="pay-btn" onclick="goWaiting()">
+      <div class="pay-logo logo-card">💳</div>
+      <span class="pay-name">신용/체크카드</span>
+    </button>
+    <button class="pay-btn" onclick="goWaiting()">
+      <div class="pay-logo logo-kakao">kakao<br/>pay</div>
+      <span class="pay-name">카카오페이</span>
+    </button>
+    <button class="pay-btn" onclick="goWaiting()">
+      <div class="pay-logo logo-naver">N Pay</div>
+      <span class="pay-name">네이버페이</span>
+    </button>
+    <button class="pay-btn" onclick="goWaiting()">
+      <div class="pay-logo logo-toss">toss</div>
+      <span class="pay-name">토스페이</span>
+    </button>
+  </div>
+
+  <div class="pay-grid">
+    <button class="pay-btn dim" disabled>
+      <div class="pay-logo logo-payco">PAYCO</div>
+      <span class="pay-name">페이코</span>
+    </button>
+    <button class="pay-btn dim" disabled>
+      <div class="pay-logo logo-samsung">Samsung<br/>Pay</div>
+      <span class="pay-name">삼성페이</span>
+    </button>
+    <button class="pay-btn dim" disabled>
+      <div class="pay-logo logo-apple"></div>
+      <span class="pay-name">애플페이</span>
+    </button>
+    <button class="pay-btn dim" disabled>
+      <div class="pay-logo logo-bank">🏦</div>
+      <span class="pay-name">계좌이체</span>
+    </button>
+  </div>
+
+  <div class="notice-box">
+    <div class="notice-title">확인해주세요</div>
+    무료 체험 기간 중에는 실제 결제가 발생하지 않아요. 체험 종료 전 미리 알려드리니, 원하지 않으시면 해지하시면 됩니다.
+  </div>
+
+</div>
+
+<script>
+  function getEndTime() {
+    let end = localStorage.getItem('talkey_end');
+    if (!end) { end = Date.now() + 24 * 60 * 60 * 1000; localStorage.setItem('talkey_end', end); }
+    return parseInt(end);
+  }
+  function formatTime(ms) {
+    if (ms <= 0) return '00:00:00';
+    const s = Math.floor(ms / 1000);
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(n => String(n).padStart(2,'0')).join(':');
+  }
+  const endTime = getEndTime();
+  function tick() {
+    const el = document.getElementById('pay-timer');
+    if (el) el.textContent = formatTime(endTime - Date.now());
+  }
+  tick(); setInterval(tick, 1000);
+
+  function goWaiting() { window.location.href = 'waiting.html'; }
+</script>
+
+<script>
+  // ── talkey 이벤트 트래킹 ──
+  (function () {
+    const SID_KEY = 'talkey_sid';
+    let sid = sessionStorage.getItem(SID_KEY);
+    if (!sid) {
+      sid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      sessionStorage.setItem(SID_KEY, sid);
+    }
+
+    function track(event, extra) {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event, page: 'payment', session_id: sid, ...extra }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+
+    // 페이지 조회
+    track('page_view');
+
+    // 결제 수단 버튼 클릭 (활성화된 것만)
+    document.querySelectorAll('.pay-btn:not(.dim)').forEach(el => {
+      el.addEventListener('click', () => {
+        const name = el.querySelector('.pay-name')?.textContent?.trim();
+        track('payment_btn_click', { method: name });
+        gtag('event', 'payment_btn_click', { payment_method: name });
+      });
+    });
+  })();
+</script>
+</body>
+</html>
